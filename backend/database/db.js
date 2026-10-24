@@ -47,7 +47,7 @@ const memberSchema = new mongoose.Schema({
   }
 })
 
-const TaskSchema = new mongoose.Schema({
+const taskSchema = new mongoose.Schema({
   user:{
     type:mongoose.Schema.Types.ObjectId,
     ref:"User",
@@ -70,3 +70,12 @@ const TaskSchema = new mongoose.Schema({
     required:true
   }
 })
+
+const User = mongoose.model("User", userSchema);
+const Member = mongoose.model("Member", memberSchema);
+const Project = mongoose.model("Project",projectSchema);
+const Task = mongoose.model("Task", taskSchema);
+
+module.exports = {
+  User,Member,Project,Task
+}
