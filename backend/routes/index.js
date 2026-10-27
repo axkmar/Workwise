@@ -1,10 +1,12 @@
 const express = require('express');
 const Router = express.Router();
 
-const workRouter = require('./user')
-const workRouter = require('./ws')
+const userRouter = require('./user')
+const projectRouter = require('./project')
 
 Router.use('/users',userRouter);
-Router.use('/workspace',workRouter);
+Router.use('/projects',projectRouter);
+// Router.use('/members',workRouter);
+// Router.use('/tasks',workRouter);
 
 module.exports = Router;

@@ -6,9 +6,9 @@ const PORT = process.env.PORT
 
 const app = express();
 
-app.use('/api',MainRouter);
-
 app.use(cors());
 app.use(express.json());
+
+app.use('/api/v1',MainRouter);
 
 app.listen(PORT)

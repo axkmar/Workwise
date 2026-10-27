@@ -35,11 +35,11 @@ Router.post('/',async(req,res)=>{ //create profile
     password:req.body.password
   })
 
-  const userId = user._id;
+  // const userId = user._id;
 
-  const token = jwt.sign({
-    userId
-  },12123);
+  // const token = jwt.sign({
+  //   userId
+  // },12123);
 
   return res.status(200).json({
     message:"User Created Successfully!"
@@ -57,3 +57,5 @@ Router.delete('/',async(req,res)=>{ //delete profile
     message:"Account Deleted Successfully!"
   })
 })
+
+module.exports = Router;
