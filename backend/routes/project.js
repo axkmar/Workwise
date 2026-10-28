@@ -23,7 +23,7 @@ Router.post('/',async(req,res)=>{  // add project to currentUser
   if(!existingUser)
     return res.json({message:"User Not Found"});
 
-  const project = Project.create({
+  Project.create({
     managerId:managerId,
     name:req.body.name
   })
@@ -33,16 +33,23 @@ Router.post('/',async(req,res)=>{  // add project to currentUser
   })
 })
 
-Router.get('/',async(req,res)=>{
+Router.get('/',async(req,res)=>{  // get project data
   const project = await Project.find({
     managerId:req.body.managerId
   });
   return res.json(project);
 })
 
-Router.delete('/',async(req,res)=>{
+// Router.put('/',async(req,res)=>{  // update project
+//   const project = await Project.find({
+//     managerId:req.body.managerId
+//   });
+//   return res.json(project);
+// })
+
+Router.delete('/',async(req,res)=>{ //delete project data
   await Project.deleteOne({
-    managerId:req.managerId
+    managerId:req.body.managerId
   })
 
   return res.json({message:"Project Succesfully Deleted"})

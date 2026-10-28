@@ -28,13 +28,9 @@ const projectSchema = new mongoose.Schema({
 })
 
 const memberSchema = new mongoose.Schema({
-  user:{
+  projectId:{
     type:mongoose.Schema.Types.ObjectId,
     ref:"User",
-    required:true
-  },
-  role:{
-    type:String,
     required:true
   },
   hoursPerDay:{
@@ -48,7 +44,7 @@ const memberSchema = new mongoose.Schema({
 })
 
 const taskSchema = new mongoose.Schema({
-  user:{
+  projectId:{
     type:mongoose.Schema.Types.ObjectId,
     ref:"User",
     required:true
@@ -61,13 +57,10 @@ const taskSchema = new mongoose.Schema({
     type:Number,
     required:true
   },
-  project:{
-    type:String,
-    required:true
-  },
-  member:{
-    type:String,
-    required:true
+  memberId:{
+    type:mongoose.Schema.Types.ObjectId,
+    ref:"User",
+    required:false
   }
 })
 
