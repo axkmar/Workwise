@@ -1,0 +1,37 @@
+/* Page shell: sidebar | main (topbar + scrollable content) */
+.app {
+  display: flex;
+  height: 100%;
+}
+
+.main {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  transition: padding 0.2s;
+}
+
+/* makes room for the what-if panel */
+.main--shifted {
+  padding-right: 340px;
+}
+
+.content {
+  flex: 1;
+  overflow: auto;
+  padding: 20px 24px;
+}
+
+@media (max-width: 1280px) {
+  .main--shifted {
+    padding-right: 0;
+  }
+}
+
+@media (max-width: 1100px) {
+  .content {
+    padding-left: 14px;
+    padding-right: 14px;
+  }
+}

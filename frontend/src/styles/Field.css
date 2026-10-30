@@ -1,0 +1,30 @@
+/* Labelled form input, used by modals and the what-if panel */
+.field {
+  display: grid;
+  gap: 4px;
+  font-size: 12px;
+  color: var(--muted);
+}
+
+.field input,
+.field select {
+  background: #17181b;
+  color: var(--text);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 8px 10px;
+  font: inherit;
+  color-scheme: dark;
+  width: 100%;
+}
+
+.field input:focus,
+.field select:focus {
+  outline: 1px solid var(--accent);
+  border-color: var(--accent);
+}
+
+.field input[type="color"] {
+  padding: 2px;
+  height: 36px;
+}

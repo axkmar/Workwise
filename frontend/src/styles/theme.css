@@ -1,0 +1,43 @@
+/* Design tokens + global reset */
+:root {
+  color-scheme: dark;
+
+  --bg: #17181b;
+  --sidebar: #131416;
+  --card: #1f2024;
+  --border: #2e3036;
+  --text: #e6e7ea;
+  --muted: #8b8e97;
+  --accent: #7c8cff;
+
+  /* load status colours */
+  --ok: #3fb97a;
+  --warn: #e2b93b;
+  --over: #ef5a5a;
+
+  /* keep content clear of phone system bars */
+  box-sizing: border-box;
+  padding-top: env(safe-area-inset-top, 0px);
+  padding-bottom: env(safe-area-inset-bottom, 0px);
+}
+
+html {
+  height: 100%;
+  scroll-padding-top: env(safe-area-inset-top, 0px);
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  height: 100%;
+  background: var(--bg);
+  color: var(--text);
+  font: 14px/1.4 Inter, system-ui, -apple-system, "Segoe UI", sans-serif;
+}
+
+#root {
+  height: 100%;
+}

@@ -1,0 +1,31 @@
+.btn {
+  background: var(--card);
+  color: var(--text);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 7px 12px;
+  font: inherit;
+  cursor: pointer;
+}
+
+.btn:hover {
+  border-color: #44474f;
+}
+
+.btn--primary {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: #101223;
+  font-weight: 600;
+}
+
+.btn--block {
+  margin-top: 6px;
+  text-align: left;
+  width: 100%;
+}
+
+.btn--small {
+  padding: 4px 9px;
+  font-size: 12px;
+}

@@ -1,0 +1,40 @@
+.popover {
+  position: fixed;
+  z-index: 40;
+  width: 250px;
+  background: #25272d;
+  border: 1px solid #3a3d45;
+  border-radius: 10px;
+  padding: 12px;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+}
+
+.popover__title {
+  margin: 0 0 8px;
+  font-size: 13px;
+}
+
+.popover__row {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  padding: 5px 0;
+  border-top: 1px solid var(--border);
+  font-size: 13px;
+}
+
+.popover__dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  flex: none;
+}
+
+.popover__hours {
+  margin-left: auto;
+  color: var(--muted);
+}
+
+.popover__muted {
+  color: var(--muted);
+}
