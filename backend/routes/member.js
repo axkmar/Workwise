@@ -1,7 +1,9 @@
 const express = require('express');
 const zod = require('zod')
 const { User,Project, Member } = require('../database/db');
+const Auth = require('../auth.js')
 const Router = express.Router();
+const JWT_KEY = process.env.JWT_KEY
 
 const addMemberSchema = zod.object({
   projectId:zod.string(),
@@ -9,7 +11,7 @@ const addMemberSchema = zod.object({
   name:zod.string()
 })
 
-Router.post('/',async(req,res)=>{  // add project to currentUser
+Router.post('/',Auth,async(req,res)=>{  // add project to currentUser
   const {success} = addMemberSchema.safeParse(req.body);
 
   if(!success){
@@ -35,7 +37,7 @@ Router.post('/',async(req,res)=>{  // add project to currentUser
   })
 })
 
-Router.get('/',async(req,res)=>{  // get project data
+Router.get('/',Auth,async(req,res)=>{  // get project data
   const member = await Member.find({
     projectId:req.body.projectId
   });
@@ -49,7 +51,7 @@ Router.get('/',async(req,res)=>{  // get project data
 //   return res.json(project);
 // })
 
-Router.delete('/',async(req,res)=>{ //delete project data
+Router.delete('/',Auth,async(req,res)=>{ //delete project data
   await Member.deleteOne({
     projectId:req.body.projectId
   })

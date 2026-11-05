@@ -1,12 +1,11 @@
 import FormModal from "./FormModal";
-import { makeId } from "../../utils/dates";
 
 export default function AddMemberModal({ onAdd, onClose }) {
   const handleSubmit = (v) => {
     const hours = parseFloat(v.hours);
     if (!v.name.trim()) return "Enter a name.";
     if (!(hours > 0 && hours <= 24)) return "Hours per day must be between 0 and 24.";
-    onAdd({ id: makeId("m"), name: v.name.trim(), dailyAvailableHours: hours });
+    onAdd({ id: v._id, name: v.name.trim(), dailyAvailableHours: hours });
   };
 
   return (

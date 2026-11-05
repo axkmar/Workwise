@@ -1,17 +1,16 @@
 import FormModal from "./FormModal";
 import { PROJECT_COLOURS } from "../../data/seed";
-import { makeId } from "../../utils/dates";
 
 export default function AddProjectModal({ projectCount, onAdd, onClose }) {
   const handleSubmit = (v) => {
     if (!v.name.trim()) return "Enter a project name.";
-    onAdd({ id: makeId("p"), name: v.name.trim(), colour: v.colour });
+    onAdd({ id: v._id, name: v.name.trim(), colour: v.colour });
   };
 
   return (
     <FormModal
       title="Add project"
-      submitLabel="Add"
+      submitLabel="Adds"
       onSubmit={handleSubmit}
       onClose={onClose}
       fields={[

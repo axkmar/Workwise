@@ -1,7 +1,6 @@
 import FormModal from "./FormModal";
 import { countWorkdays } from "../../utils/calc";
 import { dateKeyFromToday } from "../../utils/calendar";
-import { makeId } from "../../utils/dates";
 
 /** `prefill` can pre-set title/projectId/memberId/totalHours/startDate/dueDate (used by the what-if "Assign" button). */
 export default function AddTaskModal({ members, projects, defaultProjectId, prefill = {}, onAdd, onClose }) {
@@ -13,7 +12,7 @@ export default function AddTaskModal({ members, projects, defaultProjectId, pref
     if (v.dueDate < v.startDate) return "Due date cannot be before the start date.";
     if (!countWorkdays(v.startDate, v.dueDate)) return "That range has no working days (Mon-Fri).";
     onAdd({
-      id: makeId("t"),
+      id: v._id,
       title: v.title.trim(),
       projectId: v.projectId,
       memberId: v.memberId,

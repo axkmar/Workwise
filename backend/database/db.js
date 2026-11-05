@@ -24,6 +24,10 @@ const projectSchema = new mongoose.Schema({
     type:String,
     required:true,
     maxLength:30
+  },
+  color:{
+    type:String,
+    default:"FFFFFF"
   }
 })
 
@@ -49,6 +53,11 @@ const taskSchema = new mongoose.Schema({
     ref:"User",
     required:true
   },
+  memberId:{
+    type:mongoose.Schema.Types.ObjectId,
+    ref:"User",
+    required:false
+  },
   title:{
     type:String,
     required:true
@@ -57,11 +66,14 @@ const taskSchema = new mongoose.Schema({
     type:Number,
     required:true
   },
-  memberId:{
-    type:mongoose.Schema.Types.ObjectId,
-    ref:"User",
-    required:false
-  }
+  startDate:{ 
+    type: String, 
+    required: true 
+  },
+  dueDate: { 
+    type: String, 
+    required: true 
+  },
 })
 
 const User = mongoose.model("User", userSchema);

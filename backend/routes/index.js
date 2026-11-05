@@ -3,6 +3,8 @@ const Router = express.Router();
 
 const userRouter = require('./user')
 const projectRouter = require('./project')
+const memberRouter = require('./project')
+const taskRouter = require('./project')
 
 Router.use('/users',userRouter);
 Router.use('/projects',projectRouter);

@@ -1,4 +1,4 @@
-import { useCallback, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 
 import Sidebar from "./components/Sidebar";
 import TopBar from "./components/TopBar";
@@ -10,15 +10,15 @@ import AddMemberModal from "./components/modals/AddMemberModal";
 import AddProjectModal from "./components/modals/AddProjectModal";
 import AddTaskModal from "./components/modals/AddTaskModal";
 
-import { INITIAL_MEMBERS, INITIAL_PROJECTS, INITIAL_TASKS } from "./data/seed";
+// import { INITIAL_MEMBERS, INITIAL_PROJECTS, INITIAL_TASKS } from "./data/seed";
 import { dateKeyFromToday } from "./utils/calendar";
 import { evaluateWhatIf, tasksOnDay } from "./utils/calc";
 
-export default function App() {
+export default function App({token}) {
   // ---- data ----
-  const [members, setMembers] = useState(INITIAL_MEMBERS);
-  const [projects, setProjects] = useState(INITIAL_PROJECTS);
-  const [tasks, setTasks] = useState(INITIAL_TASKS);
+  const [members, setMembers] = useState([]);
+  const [projects, setProjects] = useState([]);
+  const [tasks, setTasks] = useState([]);
 
   // ---- view state ----
   const [selectedProjectId, setSelectedProjectId] = useState(null); // null = all projects
@@ -36,6 +36,21 @@ export default function App() {
     [members, tasks, whatIfForm]
   );
 
+  useEffect(()=>{
+    async function load(){
+      const headers = { Authorization: `Bearer ${token}` };
+      const [m,p,t] = await Promise.all([
+        fetch("http://localhost:4000/api/v1/members/",{headers}).then((r)=>r.json()),
+        fetch("http://localhost:4000/api/v1/projects/",{headers}).then((r)=>r.json()),
+        fetch("http://localhost:4000/api/v1/tasks/",{headers}).then((r)=>r.json())
+      ])
+      setMembers(m);
+      setProjects(p);
+      setTasks(t);
+    }
+    load();
+  },[token])
+
   // Hovering a candidate previews the extra load on the grid (derived, never stored)
   const preview = useMemo(() => {
     if (!whatIfOpen || !hoverMemberId || !whatIfOutcome.candidates) return null;
@@ -44,7 +59,7 @@ export default function App() {
 
   const closeWhatIf = () => {
     setWhatIfOpen(false);
-    setHoverMemberId(null);
+    setHoverMemberId(null); 
   };
 
   // ---- helpers ----

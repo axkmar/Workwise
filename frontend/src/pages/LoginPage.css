@@ -1,0 +1,75 @@
+/* Centered card on the dark background */
+.auth {
+  min-height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px 16px;
+}
+
+.auth__card {
+  width: 100%;
+  max-width: 380px;
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  padding: 28px;
+  display: grid;
+  gap: 14px;
+}
+
+.auth__brand {
+  font-weight: 600;
+  font-size: 18px;
+}
+
+.auth__brand span {
+  color: var(--accent);
+}
+
+.auth__subtitle {
+  margin: -6px 0 0;
+  color: var(--muted);
+  font-size: 13px;
+}
+
+.auth__tabs {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 4px;
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 4px;
+}
+
+.auth__tab {
+  background: none;
+  border: 0;
+  border-radius: 7px;
+  padding: 7px 0;
+  color: var(--muted);
+  font: inherit;
+  cursor: pointer;
+}
+
+.auth__tab.is-active {
+  background: #25272d;
+  color: var(--text);
+}
+
+.auth__error {
+  color: #ff8f8f;
+  font-size: 13px;
+  min-height: 0;
+}
+
+.auth__submit {
+  width: 100%;
+  padding: 10px 12px;
+}
+
+.auth__submit:disabled {
+  opacity: 0.6;
+  cursor: default;
+}
