@@ -25,20 +25,23 @@ export default function LoginPage({ onLogin }) {
     setError("");
     setLoading(true);
     try {
-      const res = await fetch(`http://localhost:4000/api/v1/user/signup`, {
+      const res = await fetch(`http://localhost:4000/api/v1/users/signup`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(values),
       });
       const data = await res.json();
+      console.log(data.token);
       if (!res.ok) throw new Error(data.error || "Something went wrong.");
-      onLogin(data.token, data.user);
+      onLogin(data.token);
     } catch (err) {
       setError(err.message);
     } finally {
       setLoading(false);
     }
   }
+
+  console.log("BRUHHHH")
 
   return (
     <div className="auth">

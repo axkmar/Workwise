@@ -37,6 +37,7 @@ export default function App({token}) {
   );
 
   useEffect(()=>{
+    if(!token) return;
     async function load(){
       const headers = { Authorization: `Bearer ${token}` };
       const [m,p,t] = await Promise.all([
