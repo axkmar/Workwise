@@ -36,8 +36,9 @@ Router.post('/',Auth,async(req,res)=>{  // add project to currentUser
 })
 
 Router.get('/',Auth,async(req,res)=>{  // get project data
+  
   const project = await Project.find({
-    managerId:req.body.managerId
+    managerId:req.user.managerId
   });
   return res.json(project);
 })
@@ -51,7 +52,7 @@ Router.get('/',Auth,async(req,res)=>{  // get project data
 
 Router.delete('/',Auth,async(req,res)=>{ //delete project data
   await Project.deleteOne({
-    managerId:req.body.managerId
+    managerId:req.managerId
   })
 
   return res.json({message:"Project Succesfully Deleted"})

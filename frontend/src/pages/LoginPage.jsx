@@ -41,8 +41,6 @@ export default function LoginPage({ onLogin }) {
     }
   }
 
-  console.log("BRUHHHH")
-
   return (
     <div className="auth">
       <form className="auth__card" onSubmit={handleSubmit} noValidate>
