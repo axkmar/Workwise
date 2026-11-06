@@ -52,6 +52,34 @@ export default function App({token}) {
     load();
   },[token])
 
+  const handleAddProject = async (projectData) => {
+    try {
+      const res = await fetch("http://localhost:4000/api/v1/projects/", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`
+        },
+        body: JSON.stringify(projectData)
+      });
+      console.log(projectData)
+
+      const data = await res.json();
+
+      if (!res.ok) {
+        throw new Error(data.message || "Failed to create project");
+      }
+
+      // Update frontend state with the project returned by MongoDB
+      setProjects((list) => [...list, data]);
+
+      closeModal();
+
+    } catch (error) {
+      console.error(error);
+    }
+  };
+
   // Hovering a candidate previews the extra load on the grid (derived, never stored)
   const preview = useMemo(() => {
     if (!whatIfOpen || !hoverMemberId || !whatIfOutcome.candidates) return null;
@@ -144,7 +172,7 @@ export default function App({token}) {
       {modal?.type === "project" && (
         <AddProjectModal
           projectCount={projects.length}
-          onAdd={(p) => setProjects((list) => [...list, p])}
+          onAdd={(p)=>handleAddProject(p)}
           onClose={closeModal}
         />
       )}

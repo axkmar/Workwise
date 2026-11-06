@@ -4,13 +4,14 @@ import { PROJECT_COLOURS } from "../../data/seed";
 export default function AddProjectModal({ projectCount, onAdd, onClose }) {
   const handleSubmit = (v) => {
     if (!v.name.trim()) return "Enter a project name.";
-    onAdd({ id: v._id, name: v.name.trim(), colour: v.colour });
+    onAdd({ name: v.name.trim(), color: v.colour });
+    console.log("123123")
   };
 
   return (
     <FormModal
       title="Add project"
-      submitLabel="Adds"
+      submitLabel="Add"
       onSubmit={handleSubmit}
       onClose={onClose}
       fields={[

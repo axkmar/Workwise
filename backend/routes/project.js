@@ -6,8 +6,8 @@ const Router = express.Router();
 const JWT_KEY = process.env.JWT_KEY
 
 const addProjectSchema = zod.object({
-  managerId:zod.string(),
-  name:zod.string()
+  name:zod.string(),
+  color:zod.string()
 })
 
 Router.post('/',Auth,async(req,res)=>{  // add project to currentUser
@@ -17,7 +17,7 @@ Router.post('/',Auth,async(req,res)=>{  // add project to currentUser
     return res.json({message:"Invalid Credentials"});
   }
 
-  const managerId = req.body.managerId;
+  const managerId = req.user.userId;
   const existingUser = await User.findOne({
     _id:managerId
   })
@@ -25,9 +25,10 @@ Router.post('/',Auth,async(req,res)=>{  // add project to currentUser
   if(!existingUser)
     return res.json({message:"User Not Found"});
 
-  Project.create({
+  await Project.create({
     managerId:managerId,
-    name:req.body.name
+    name:req.body.name,
+    color:req.body.color
   })
   
   return res.status(200).json({
@@ -36,9 +37,8 @@ Router.post('/',Auth,async(req,res)=>{  // add project to currentUser
 })
 
 Router.get('/',Auth,async(req,res)=>{  // get project data
-  
   const project = await Project.find({
-    managerId:req.user.managerId
+    managerId:req.user.userId
   });
   return res.json(project);
 })
