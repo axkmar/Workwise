@@ -5,7 +5,6 @@ export default function AddProjectModal({ projectCount, onAdd, onClose }) {
   const handleSubmit = (v) => {
     if (!v.name.trim()) return "Enter a project name.";
     onAdd({ name: v.name.trim(), color: v.colour });
-    console.log("123123")
   };
 
   return (
@@ -16,7 +15,8 @@ export default function AddProjectModal({ projectCount, onAdd, onClose }) {
       onClose={onClose}
       fields={[
         { name: "name", label: "Project name", type: "text" },
-        { name: "colour", label: "Colour", type: "color", defaultValue: PROJECT_COLOURS[projectCount % PROJECT_COLOURS.length] },
+        { name: "colour", label: "Colour", type: "color", 
+          defaultValue: PROJECT_COLOURS[projectCount % PROJECT_COLOURS.length] },
       ]}
     />
   );

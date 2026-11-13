@@ -12,11 +12,10 @@ export default function AddTaskModal({ members, projects, defaultProjectId, pref
     if (v.dueDate < v.startDate) return "Due date cannot be before the start date.";
     if (!countWorkdays(v.startDate, v.dueDate)) return "That range has no working days (Mon-Fri).";
     onAdd({
-      id: v._id,
-      title: v.title.trim(),
       projectId: v.projectId,
       memberId: v.memberId,
-      totalHours: hours,
+      title: v.title.trim(),
+      estTime: hours,
       startDate: v.startDate,
       dueDate: v.dueDate,
     });
@@ -33,12 +32,12 @@ export default function AddTaskModal({ members, projects, defaultProjectId, pref
         {
           name: "projectId", label: "Project", type: "select",
           defaultValue: prefill.projectId || defaultProjectId,
-          options: projects.map((p) => ({ value: p.id, label: p.name })),
+          options: projects.map((p) => ({ value: p._id, label: p.name })),
         },
         {
           name: "memberId", label: "Assignee", type: "select",
           defaultValue: prefill.memberId,
-          options: members.map((m) => ({ value: m.id, label: m.name })),
+          options: members.map((m) => ({ value: m._id, label: m.name })),
         },
         { name: "totalHours", label: "Total hours", type: "number", defaultValue: prefill.totalHours, min: 0, step: 0.5 },
         { name: "startDate", label: "Start date", type: "date", defaultValue: prefill.startDate || dateKeyFromToday(0) },

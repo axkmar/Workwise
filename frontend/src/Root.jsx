@@ -15,8 +15,6 @@ export default function Root() {
   //   setToken(null);
   // };
 
-  console.log(token);
-
   if (!token) return <LoginPage onLogin={handleLogin} />;
   return <App token={token} />;
 }

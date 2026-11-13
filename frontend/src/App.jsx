@@ -16,6 +16,10 @@ import { evaluateWhatIf, tasksOnDay } from "./utils/calc";
 
 export default function App({token}) {
   // ---- data ----
+  // const [members, setMembers] = useState(INITIAL_MEMBERS);
+  // const [projects, setProjects] = useState(INITIAL_PROJECTS);
+  // const [tasks, setTasks] = useState(INITIAL_TASKS);
+
   const [members, setMembers] = useState([]);
   const [projects, setProjects] = useState([]);
   const [tasks, setTasks] = useState([]);
@@ -52,9 +56,10 @@ export default function App({token}) {
     load();
   },[token])
 
-  const handleAddProject = async (projectData) => {
+  const handleAdd = async (projectData,dest) => {
+    console.log(projectData)
     try {
-      const res = await fetch("http://localhost:4000/api/v1/projects/", {
+      const res = await fetch(`http://localhost:4000/api/v1/${dest}/`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -62,7 +67,6 @@ export default function App({token}) {
         },
         body: JSON.stringify(projectData)
       });
-      console.log(projectData)
 
       const data = await res.json();
 
@@ -71,7 +75,9 @@ export default function App({token}) {
       }
 
       // Update frontend state with the project returned by MongoDB
-      setProjects((list) => [...list, data]);
+      if(dest==="projects") setProjects((list) => [...list, data]);
+      else if(dest==="tasks") setTasks((list) => [...list, data]);
+      else if(dest==="members") setMembers((list) => [...list, data]);
 
       closeModal();
 
@@ -105,7 +111,7 @@ export default function App({token}) {
     setModal({ type: "task", prefill });
   };
 
-  const selectedProject = projects.find((p) => p.id === selectedProjectId);
+  const selectedProject = projects.find((p) => p._id === selectedProjectId);
   const popoverMember = popover && members.find((m) => m.id === popover.memberId);
 
   return (
@@ -167,12 +173,16 @@ export default function App({token}) {
       )}
 
       {modal?.type === "member" && (
-        <AddMemberModal onAdd={(m) => setMembers((list) => [...list, m])} onClose={closeModal} />
+        <AddMemberModal 
+          onAdd={(m) => handleAdd(m,"members")} 
+          onClose={closeModal}
+          projectId={selectedProjectId}
+        />
       )}
       {modal?.type === "project" && (
         <AddProjectModal
           projectCount={projects.length}
-          onAdd={(p)=>handleAddProject(p)}
+          onAdd={(p)=>handleAdd(p,"projects")}
           onClose={closeModal}
         />
       )}
@@ -182,7 +192,7 @@ export default function App({token}) {
           projects={projects}
           defaultProjectId={selectedProjectId || projects[0].id}
           prefill={modal.prefill}
-          onAdd={(t) => setTasks((list) => [...list, t])}
+          onAdd={(t) => handleAdd(t,"tasks")}
           onClose={closeModal}
         />
       )}

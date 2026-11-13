@@ -27,12 +27,12 @@ export default function Sidebar({ projects, tasks, selectedProjectId, onSelect, 
         />
         {projects.map((p) => (
           <ProjectItem
-            key={p.id}
+            key={p._id}
             name={p.name}
-            colour={p.colour}
-            count={tasks.filter((t) => t.projectId === p.id).length}
-            active={selectedProjectId === p.id}
-            onClick={() => onSelect(p.id)}
+            colour={p.color}
+            count={tasks.filter((t) => t.projectId === p._id).length}
+            active={selectedProjectId === p._id}
+            onClick={() => onSelect(p._id)}
           />
         ))}
       </div>

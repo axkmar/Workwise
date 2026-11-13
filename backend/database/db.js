@@ -34,23 +34,23 @@ const projectSchema = new mongoose.Schema({
 const memberSchema = new mongoose.Schema({
   projectId:{
     type:mongoose.Schema.Types.ObjectId,
-    ref:"User",
+    ref:"Project",
+    required:true
+  },
+  name:{
+    type:String,
     required:true
   },
   hoursPerDay:{
     type:Number,
     required:true
   },
-  name:{
-    type:String,
-    required:true
-  }
 })
 
 const taskSchema = new mongoose.Schema({
   projectId:{
     type:mongoose.Schema.Types.ObjectId,
-    ref:"User",
+    ref:"Project",
     required:true
   },
   memberId:{
