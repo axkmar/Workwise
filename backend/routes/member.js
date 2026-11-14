@@ -1,62 +1,63 @@
 const express = require('express');
-const zod = require('zod')
-const { User,Project, Member } = require('../database/db');
-const Auth = require('../auth.js')
+const zod = require('zod');
+const { Project, Member } = require('../database/db');
+const Auth = require('../auth.js');
 const Router = express.Router();
-const JWT_KEY = process.env.JWT_KEY
 
 const addMemberSchema = zod.object({
-  projectId:zod.string(),
-  hoursPerDay:zod.number(),
-  name:zod.string()
-})
+  projectId: zod.string(),
+  name: zod.string().min(1),
+  hoursPerDay: zod.number().positive(),
+});
 
-Router.post('/',Auth,async(req,res)=>{  // add project to currentUser
-  const {success} = addMemberSchema.safeParse(req.body);
-
-  if(!success){
-    return res.json({message:"Invalid Credentials"});
+// CREATE
+Router.post('/', Auth, async (req, res) => {
+  const parsed = addMemberSchema.safeParse(req.body);
+  if (!parsed.success) {
+    return res.status(400).json({ message: "Invalid input" });
   }
 
-  const projectId = req.body.projectId;
-  const existingProject = await Project.findOne({
-    _id:projectId
-  })
+  const { projectId, name, hoursPerDay } = parsed.data;
 
-  if(!existingProject)
-    return res.json({message:"User Not Found"});
+  const project = await Project.findOne({ _id: projectId, managerId: req.user.userId });
+  if (!project) {
+    return res.status(404).json({ message: "Project not found" });
+  }
 
-  await Member.create({
-    projectId:projectId,
-    hoursPerDay:req.body.hoursPerDay,
-    name:req.body.name
-  })
-  
-  return res.status(200).json({
-    message:"Project Created Succesfully"
-  })
-})
+  const member = await Member.create({ projectId, name, hoursPerDay });
+  return res.status(201).json(member); // frontend appends this directly
+});
 
-Router.get('/',Auth,async(req,res)=>{  // get project data
-  const member = await Member.find({
-    projectId:req.body.projectId
+// READ: GET /members or GET /members?projectId=abc
+Router.get('/', Auth, async (req, res) => {
+  const { projectId } = req.query;
+
+  if (projectId) {
+    const project = await Project.findOne({ _id: projectId, managerId: req.user.userId });
+    if (!project) return res.status(404).json({ message: "Project not found" });
+
+    const members = await Member.find({ projectId });
+    return res.json(members);
+  }
+
+  // no projectId = all members across this user's projects
+  const projects = await Project.find({ managerId: req.user.userId }).select('_id');
+  const members = await Member.find({
+    projectId: { $in: projects.map((p) => p._id) },
   });
-  return res.json(member);
-})
+  return res.json(members);
+});
 
-// Router.put('/',async(req,res)=>{  // update project
-//   const project = await Project.find({
-//     managerId:req.body.managerId
-//   });
-//   return res.json(project);
-// })
+// DELETE: DELETE /members/:id
+Router.delete('/:id', Auth, async (req, res) => {
+  const member = await Member.findById(req.params.id);
+  if (!member) return res.status(404).json({ message: "Member not found" });
 
-Router.delete('/',Auth,async(req,res)=>{ //delete project data
-  await Member.deleteOne({
-    projectId:req.body.projectId
-  })
+  const project = await Project.findOne({ _id: member.projectId, managerId: req.userId });
+  if (!project) return res.status(403).json({ message: "Not allowed" });
 
-  return res.json({message:"Project Succesfully Deleted"})
-})
+  await member.deleteOne();
+  return res.json({ message: "Member deleted" });
+});
 
 module.exports = Router;

@@ -10,9 +10,9 @@ import "../../styles/Modal.css";
 export default function FormModal({ title, fields, submitLabel, onSubmit, onClose }) {
   const [error, setError] = useState("");
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    const err = onSubmit(Object.fromEntries(new FormData(e.currentTarget)));
+    const err = await onSubmit(Object.fromEntries(new FormData(e.currentTarget)));
     if (err) setError(err);
     else onClose();
   };

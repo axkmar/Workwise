@@ -30,7 +30,7 @@ export default function WhatIfPanel({ open, form, onFormChange, outcome, onHover
               {outcome.dayKeys.length > 1 ? "s" : ""}. Hover a person to preview the grid.
             </div>
             {outcome.candidates.map(({ member, peak, free, verdict }) => (
-              <div className="candidate" key={member.id} onMouseEnter={() => onHoverMember(member.id)}>
+              <div className="candidate" key={member._id} onMouseEnter={() => onHoverMember(member._id)}>
                 <Avatar />
                 <div className="candidate__info">
                   <div className="candidate__name">{member.name}</div>
@@ -40,7 +40,7 @@ export default function WhatIfPanel({ open, form, onFormChange, outcome, onHover
                 </div>
                 <span className={`badge badge--${verdict}`}>{VERDICT_LABEL[verdict]}</span>
                 {verdict !== "over" && (
-                  <button className="btn btn--small" onClick={() => onAssign(member.id)}>
+                  <button className="btn btn--small" onClick={() => onAssign(member._id)}>
                     Assign
                   </button>
                 )}

@@ -5,7 +5,6 @@ export default function AddMemberModal({ onAdd, onClose, projectId }) {
     const hours = parseFloat(v.hours);
     if (!v.name.trim()) return "Enter a name.";
     if (!(hours > 0 && hours <= 24)) return "Hours per day must be between 0 and 24.";
-    console.log(v);
 
     onAdd({ projectId: projectId, name: v.name.trim(), hoursPerDay: hours });
   };

@@ -5,8 +5,8 @@ import { formatHours, isWorkday, toKey } from "../utils/dates";
 
 /** One grid row: member name, 14 day cells, weekly total. Rendered as a fragment so it sits in the parent grid. */
 export default function MemberRow({ member, tasks, projectId, preview, onCellClick }) {
-  const available = member.dailyAvailableHours;
-  const activePreview = preview && preview.memberId === member.id ? preview : null;
+  const available = member.hoursPerDay;
+  const activePreview = preview && preview.memberId === member._id ? preview : null;
 
   let totalLoad = 0;
   let totalAvailable = 0;
@@ -15,7 +15,7 @@ export default function MemberRow({ member, tasks, projectId, preview, onCellCli
     const dateKey = toKey(day);
     if (!isWorkday(day)) return <div key={dateKey} className="cell cell--off" />;
 
-    let load = loadOnDay(tasks, member.id, dateKey, projectId);
+    let load = loadOnDay(tasks, member._id, dateKey, projectId);
     const isPreview = activePreview && activePreview.dayKeys.has(dateKey);
     if (isPreview) load += activePreview.extra;
 
@@ -27,7 +27,7 @@ export default function MemberRow({ member, tasks, projectId, preview, onCellCli
       <div
         key={dateKey}
         className={`cell cell--${status}${isPreview ? " cell--preview" : ""}`}
-        onClick={(e) => onCellClick(member.id, dateKey, e.currentTarget.getBoundingClientRect())}
+        onClick={(e) => onCellClick(member._id, dateKey, e.currentTarget.getBoundingClientRect())}
       >
         {status === "empty" ? "–" : `${formatHours(load)}h / ${formatHours(available)}h`}
       </div>

@@ -2,18 +2,22 @@ import FormModal from "./FormModal";
 import { countWorkdays } from "../../utils/calc";
 import { dateKeyFromToday } from "../../utils/calendar";
 
-/** `prefill` can pre-set title/projectId/memberId/totalHours/startDate/dueDate (used by the what-if "Assign" button). */
-export default function AddTaskModal({ members, projects, defaultProjectId, prefill = {}, onAdd, onClose }) {
+/** `prefill` can pre-set title/memberId/totalHours/startDate/dueDate (used by the what-if "Assign" button). */
+export default function AddTaskModal({ members, projects, prefill = {}, onAdd, onClose }) {
   const handleSubmit = (v) => {
+    const member = members.find((m) => m._id === v.memberId);
     const hours = parseFloat(v.totalHours);
+
+    if (!member) return "Pick an assignee.";
     if (!v.title.trim()) return "Enter a task title.";
     if (!(hours > 0)) return "Total hours must be greater than 0.";
     if (!v.startDate || !v.dueDate) return "Pick both a start and a due date.";
     if (v.dueDate < v.startDate) return "Due date cannot be before the start date.";
     if (!countWorkdays(v.startDate, v.dueDate)) return "That range has no working days (Mon-Fri).";
-    onAdd({
-      projectId: v.projectId,
-      memberId: v.memberId,
+
+    return onAdd({
+      projectId: member.projectId, // derived from the member, so the two always match
+      memberId: member._id,
       title: v.title.trim(),
       estTime: hours,
       startDate: v.startDate,
@@ -30,14 +34,14 @@ export default function AddTaskModal({ members, projects, defaultProjectId, pref
       fields={[
         { name: "title", label: "Title", type: "text", defaultValue: prefill.title },
         {
-          name: "projectId", label: "Project", type: "select",
-          defaultValue: prefill.projectId || defaultProjectId,
-          options: projects.map((p) => ({ value: p._id, label: p.name })),
-        },
-        {
-          name: "memberId", label: "Assignee", type: "select",
+          name: "memberId",
+          label: "Assignee",
+          type: "select",
           defaultValue: prefill.memberId,
-          options: members.map((m) => ({ value: m._id, label: m.name })),
+          options: members.map((m) => ({
+            value: m._id,
+            label: `${m.name} (${projects.find((p) => p._id === m.projectId)?.name ?? "?"})`,
+          })),
         },
         { name: "totalHours", label: "Total hours", type: "number", defaultValue: prefill.totalHours, min: 0, step: 0.5 },
         { name: "startDate", label: "Start date", type: "date", defaultValue: prefill.startDate || dateKeyFromToday(0) },

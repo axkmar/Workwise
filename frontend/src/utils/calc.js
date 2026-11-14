@@ -24,7 +24,7 @@ export function countWorkdays(startKey, endKey) {
 /** Hours per working day for a task: totalHours spread evenly. 0 if the range has no working days. */
 export function hoursPerDay(task) {
   const days = countWorkdays(task.startDate, task.dueDate);
-  return days ? task.totalHours / days : 0;
+  return days ? task.estTime / days : 0;
 }
 
 /** Tasks of a member covering a date (ISO strings compare correctly), optionally for one project. */
@@ -71,7 +71,7 @@ export function evaluateWhatIf(members, tasks, { hours, start, due }) {
 
   const candidates = members
     .map((member) => {
-      const available = member.dailyAvailableHours;
+      const available = member.hoursPerDay;
       const loads = dayKeys.map((d) => loadOnDay(tasks, member.id, d, null));
       const peak = Math.max(...loads.map((l) => (l + extra) / available));
       const free = loads.reduce((sum, l) => sum + Math.max(0, available - l), 0);

@@ -10,16 +10,13 @@ import AddMemberModal from "./components/modals/AddMemberModal";
 import AddProjectModal from "./components/modals/AddProjectModal";
 import AddTaskModal from "./components/modals/AddTaskModal";
 
-// import { INITIAL_MEMBERS, INITIAL_PROJECTS, INITIAL_TASKS } from "./data/seed";
 import { dateKeyFromToday } from "./utils/calendar";
 import { evaluateWhatIf, tasksOnDay } from "./utils/calc";
 
-export default function App({token}) {
-  // ---- data ----
-  // const [members, setMembers] = useState(INITIAL_MEMBERS);
-  // const [projects, setProjects] = useState(INITIAL_PROJECTS);
-  // const [tasks, setTasks] = useState(INITIAL_TASKS);
+const API = "http://localhost:4000/api/v1";
 
+export default function App({ token }) {
+  // ---- data ----
   const [members, setMembers] = useState([]);
   const [projects, setProjects] = useState([]);
   const [tasks, setTasks] = useState([]);
@@ -32,7 +29,11 @@ export default function App({token}) {
 
   // ---- what-if panel ----
   const [whatIfOpen, setWhatIfOpen] = useState(false);
-  const [whatIfForm, setWhatIfForm] = useState({ hours: "16", start: dateKeyFromToday(0), due: dateKeyFromToday(4) });
+  const [whatIfForm, setWhatIfForm] = useState({
+    hours: "16",
+    start: dateKeyFromToday(0),
+    due: dateKeyFromToday(4),
+  });
   const [hoverMemberId, setHoverMemberId] = useState(null);
 
   const whatIfOutcome = useMemo(
@@ -40,68 +41,107 @@ export default function App({token}) {
     [members, tasks, whatIfForm]
   );
 
-  useEffect(()=>{
-    if(!token) return;
-    async function load(){
-      const headers = { Authorization: `Bearer ${token}` };
-      const [m,p,t] = await Promise.all([
-        fetch("http://localhost:4000/api/v1/members/",{headers}).then((r)=>r.json()),
-        fetch("http://localhost:4000/api/v1/projects/",{headers}).then((r)=>r.json()),
-        fetch("http://localhost:4000/api/v1/tasks/",{headers}).then((r)=>r.json())
-      ])
-      setMembers(m);
-      setProjects(p);
-      setTasks(t);
-    }
-    load();
-  },[token])
+  // ---- helpers ----
+  const showToast = (text) => setToast({ id: Date.now(), text });
+  const clearToast = useCallback(() => setToast(null), []);
+  const closeModal = () => setModal(null);
+  const closePopover = useCallback(() => setPopover(null), []);
 
-  const handleAdd = async (projectData,dest) => {
-    console.log(projectData)
+  // ---- load data ----
+  useEffect(() => {
+    if (!token) return;
+
+    async function load() {
+      const headers = { Authorization: `Bearer ${token}` };
+      // omit the param when null, otherwise "null" would be sent as a string
+      const qs = selectedProjectId
+        ? `?${new URLSearchParams({ projectId: selectedProjectId })}`
+        : "";
+
+      try {
+        const [p, m, t] = await Promise.all([
+          fetch(`${API}/projects/`, { headers }),
+          fetch(`${API}/members/${qs}`, { headers }),
+          fetch(`${API}/tasks/${qs}`, { headers }),
+        ]);
+
+        if (!p.ok || !m.ok || !t.ok) throw new Error("Failed to load data");
+
+        const [projectData, memberData, taskData] = await Promise.all([
+          p.json(),
+          m.json(),
+          t.json(),
+        ]);
+
+        setProjects(projectData);
+        setMembers(memberData);
+        setTasks(taskData);
+      } catch (err) {
+        console.error(err);
+        showToast(err.message);
+      }
+    }
+
+    load();
+    
+  }, [token, selectedProjectId]);
+
+  // ---- create ----
+  // Returns an error string on failure (FormModal shows it), nothing on success.
+  const handleAdd = async (payload, dest) => {
     try {
-      const res = await fetch(`http://localhost:4000/api/v1/${dest}/`, {
+      const body =
+        dest === "members"
+          ? { ...payload, projectId: selectedProjectId }
+          : payload;
+
+      const res = await fetch(`${API}/${dest}/`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`
+          Authorization: `Bearer ${token}`,
         },
-        body: JSON.stringify(projectData)
+        body: JSON.stringify(body),
       });
 
       const data = await res.json();
+      console.log(data)
+      if (!res.ok) throw new Error(data.message || "Failed to create");
 
-      if (!res.ok) {
-        throw new Error(data.message || "Failed to create project");
-      }
-
-      // Update frontend state with the project returned by MongoDB
-      if(dest==="projects") setProjects((list) => [...list, data]);
-      else if(dest==="tasks") setTasks((list) => [...list, data]);
-      else if(dest==="members") setMembers((list) => [...list, data]);
+      console.log(data);
+      if (dest === "projects") setProjects((list) => [...list, data]);
+      else if (dest === "tasks") setTasks((list) => [...list, data]);
+      else if (dest === "members") setMembers((list) => [...list, data]);
 
       closeModal();
-
     } catch (error) {
       console.error(error);
+      return error.message;
     }
   };
 
   // Hovering a candidate previews the extra load on the grid (derived, never stored)
   const preview = useMemo(() => {
     if (!whatIfOpen || !hoverMemberId || !whatIfOutcome.candidates) return null;
-    return { memberId: hoverMemberId, extra: whatIfOutcome.extra, dayKeys: new Set(whatIfOutcome.dayKeys) };
+    return {
+      memberId: hoverMemberId,
+      extra: whatIfOutcome.extra,
+      dayKeys: new Set(whatIfOutcome.dayKeys),
+    };
   }, [whatIfOpen, hoverMemberId, whatIfOutcome]);
 
   const closeWhatIf = () => {
     setWhatIfOpen(false);
-    setHoverMemberId(null); 
+    setHoverMemberId(null);
   };
 
-  // ---- helpers ----
-  const showToast = (text) => setToast({ id: Date.now(), text });
-  const clearToast = useCallback(() => setToast(null), []);
-  const closeModal = () => setModal(null);
-  const closePopover = useCallback(() => setPopover(null), []);
+  const openMemberModal = () => {
+    if (!selectedProjectId) {
+      showToast("Select a project first");
+      return;
+    }
+    setModal({ type: "member" });
+  };
 
   const openTaskModal = (prefill = {}) => {
     if (!members.length || !projects.length) {
@@ -112,7 +152,7 @@ export default function App({token}) {
   };
 
   const selectedProject = projects.find((p) => p._id === selectedProjectId);
-  const popoverMember = popover && members.find((m) => m.id === popover.memberId);
+  const popoverMember = popover && members.find((m) => m._id === popover.memberId);
 
   return (
     <>
@@ -128,7 +168,7 @@ export default function App({token}) {
         <main className={`main${whatIfOpen ? " main--shifted" : ""}`}>
           <TopBar
             title={selectedProject ? selectedProject.name : "All projects"}
-            onAddMember={() => setModal({ type: "member" })}
+            onAddMember={openMemberModal}
             onAddTask={() => openTaskModal()}
             onToggleWhatIf={() => (whatIfOpen ? closeWhatIf() : setWhatIfOpen(true))}
           />
@@ -138,7 +178,9 @@ export default function App({token}) {
               tasks={tasks}
               projectId={selectedProjectId}
               preview={preview}
-              onCellClick={(memberId, dateKey, anchor) => setPopover({ memberId, dateKey, anchor })}
+              onCellClick={(memberId, dateKey, anchor) =>
+                setPopover({ memberId, dateKey, anchor })
+              }
             />
           </div>
         </main>
@@ -173,8 +215,8 @@ export default function App({token}) {
       )}
 
       {modal?.type === "member" && (
-        <AddMemberModal 
-          onAdd={(m) => handleAdd(m,"members")} 
+        <AddMemberModal
+          onAdd={(m) => handleAdd(m, "members")}
           onClose={closeModal}
           projectId={selectedProjectId}
         />
@@ -182,7 +224,7 @@ export default function App({token}) {
       {modal?.type === "project" && (
         <AddProjectModal
           projectCount={projects.length}
-          onAdd={(p)=>handleAdd(p,"projects")}
+          onAdd={(p) => handleAdd(p, "projects")}
           onClose={closeModal}
         />
       )}
@@ -190,9 +232,9 @@ export default function App({token}) {
         <AddTaskModal
           members={members}
           projects={projects}
-          defaultProjectId={selectedProjectId || projects[0].id}
+          defaultProjectId={selectedProjectId || projects[0]?._id}
           prefill={modal.prefill}
-          onAdd={(t) => handleAdd(t,"tasks")}
+          onAdd={(t) => handleAdd(t, "tasks")}
           onClose={closeModal}
         />
       )}
