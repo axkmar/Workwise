@@ -72,11 +72,11 @@ export function evaluateWhatIf(members, tasks, { hours, start, due }) {
   const candidates = members
     .map((member) => {
       const available = member.hoursPerDay;
-      const loads = dayKeys.map((d) => loadOnDay(tasks, member.id, d, null));
+      const loads = dayKeys.map((d) => loadOnDay(tasks, member._id, d, null));
       const peak = Math.max(...loads.map((l) => (l + extra) / available));
       const free = loads.reduce((sum, l) => sum + Math.max(0, available - l), 0);
       // over = overloaded, warn = tight (hits 100%), ok = has room
-      const verdict = peak > 1 + 1e-9 ? "over" : peak >= 0.995 ? "warn" : "ok";
+      const verdict = peak > 1 + 1e-9 ? "over" : peak > 0.7 ? "warn" : "ok";
       return { member, peak, free, verdict };
     })
     .sort((a, b) => a.peak - b.peak || b.free - a.free);

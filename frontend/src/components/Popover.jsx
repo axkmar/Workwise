@@ -36,9 +36,9 @@ export default function Popover({ member, dateKey, tasks, projects, anchor, onCl
 
       {tasks.length ? (
         tasks.map((t) => {
-          const project = projects.find((p) => p.id === t.projectId) || {};
+          const project = projects.find((p) => p._id === t.projectId) || {};
           return (
-            <div className="popover__row" key={t.id}>
+            <div className="popover__row" key={t._id}>
               <i className="popover__dot" style={{ background: project.colour || "#888" }} />
               <div>
                 {t.title}

@@ -16,7 +16,7 @@ import { evaluateWhatIf, tasksOnDay } from "./utils/calc";
 const API = "http://localhost:4000/api/v1";
 
 export default function App({ token }) {
-  // ---- data ----
+  // ---- data (always the full set for this user) ----
   const [members, setMembers] = useState([]);
   const [projects, setProjects] = useState([]);
   const [tasks, setTasks] = useState([]);
@@ -36,9 +36,18 @@ export default function App({ token }) {
   });
   const [hoverMemberId, setHoverMemberId] = useState(null);
 
+  // Members shown in the grid / what-if / task modal: only the selected project's, or all
+  const visibleMembers = useMemo(
+    () =>
+      selectedProjectId
+        ? members.filter((m) => m.projectId === selectedProjectId)
+        : members,
+    [members, selectedProjectId]
+  );
+
   const whatIfOutcome = useMemo(
-    () => evaluateWhatIf(members, tasks, whatIfForm),
-    [members, tasks, whatIfForm]
+    () => evaluateWhatIf(visibleMembers, tasks, whatIfForm),
+    [visibleMembers, tasks, whatIfForm]
   );
 
   // ---- helpers ----
@@ -47,22 +56,18 @@ export default function App({ token }) {
   const closeModal = () => setModal(null);
   const closePopover = useCallback(() => setPopover(null), []);
 
-  // ---- load data ----
+  // ---- load data (once per login; project filtering happens on the client) ----
   useEffect(() => {
     if (!token) return;
 
     async function load() {
       const headers = { Authorization: `Bearer ${token}` };
-      // omit the param when null, otherwise "null" would be sent as a string
-      const qs = selectedProjectId
-        ? `?${new URLSearchParams({ projectId: selectedProjectId })}`
-        : "";
 
       try {
         const [p, m, t] = await Promise.all([
           fetch(`${API}/projects/`, { headers }),
-          fetch(`${API}/members/${qs}`, { headers }),
-          fetch(`${API}/tasks/${qs}`, { headers }),
+          fetch(`${API}/members/`, { headers }),
+          fetch(`${API}/tasks/`, { headers }),
         ]);
 
         if (!p.ok || !m.ok || !t.ok) throw new Error("Failed to load data");
@@ -83,8 +88,7 @@ export default function App({ token }) {
     }
 
     load();
-    
-  }, [token, selectedProjectId]);
+  }, [token]);
 
   // ---- create ----
   // Returns an error string on failure (FormModal shows it), nothing on success.
@@ -105,10 +109,8 @@ export default function App({ token }) {
       });
 
       const data = await res.json();
-      console.log(data)
       if (!res.ok) throw new Error(data.message || "Failed to create");
 
-      console.log(data);
       if (dest === "projects") setProjects((list) => [...list, data]);
       else if (dest === "tasks") setTasks((list) => [...list, data]);
       else if (dest === "members") setMembers((list) => [...list, data]);
@@ -144,7 +146,7 @@ export default function App({ token }) {
   };
 
   const openTaskModal = (prefill = {}) => {
-    if (!members.length || !projects.length) {
+    if (!visibleMembers.length || !projects.length) {
       showToast("Add a member and a project first");
       return;
     }
@@ -174,7 +176,7 @@ export default function App({ token }) {
           />
           <div className="content">
             <Grid
-              members={members}
+              members={visibleMembers}
               tasks={tasks}
               projectId={selectedProjectId}
               preview={preview}
@@ -230,9 +232,8 @@ export default function App({ token }) {
       )}
       {modal?.type === "task" && (
         <AddTaskModal
-          members={members}
+          members={visibleMembers}
           projects={projects}
-          defaultProjectId={selectedProjectId || projects[0]?._id}
           prefill={modal.prefill}
           onAdd={(t) => handleAdd(t, "tasks")}
           onClose={closeModal}
