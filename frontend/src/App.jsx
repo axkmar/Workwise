@@ -13,7 +13,7 @@ import AddTaskModal from "./components/modals/AddTaskModal";
 import { dateKeyFromToday } from "./utils/calendar";
 import { evaluateWhatIf, tasksOnDay } from "./utils/calc";
 
-const API = import.meta.env.VITE_API_URL;
+const API = `${import.meta.env.VITE_API_URL}/api/v1`;
 
 export default function App({ token }) {
   // ---- data (always the full set for this user) ----
