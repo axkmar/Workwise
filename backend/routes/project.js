@@ -25,15 +25,13 @@ Router.post('/',Auth,async(req,res)=>{  // add project to currentUser
   if(!existingUser)
     return res.json({message:"User Not Found"});
 
-  await Project.create({
+  const project = await Project.create({
     managerId:managerId,
     name:req.body.name,
     color:req.body.color
   })
   
-  return res.status(200).json({
-    message:"Project Created Succesfully"
-  })
+  return res.status(200).json(project)
 })
 
 Router.get('/',Auth,async(req,res)=>{  // get project data
