@@ -9,6 +9,8 @@ export default function LoginPage({ onLogin }) {
   const [loading, setLoading] = useState(false);
   const isSignup = mode === "signup";
 
+const API = import.meta.env.VITE_API_URL;
+
   const switchMode = (next) => {
     setMode(next);
     setError("");
@@ -25,7 +27,7 @@ export default function LoginPage({ onLogin }) {
     setError("");
     setLoading(true);
     try {
-      const res = await fetch(`http://localhost:4000/api/v1/users/signup`, {
+      const res = await fetch(`${API}/api/v1/users/signup`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(values),
