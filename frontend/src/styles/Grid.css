@@ -1,15 +1,17 @@
 /* name column | 14 day columns | total column */
 .planner-grid {
+  position: relative;
   display: grid;
   grid-template-columns: 190px repeat(14, minmax(66px, 1fr)) 64px;
   gap: 4px;
-  min-width: 1120px;
 }
 
 .empty-state {
-  grid-column: 1 / -1;
+  position: absolute;
+  /* left:45vw;
+  top:60vh; */
+  inset:0;
   color: var(--muted);
-  padding: 40px;
   text-align: center;
 }
 
