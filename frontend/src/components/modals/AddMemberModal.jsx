@@ -1,12 +1,13 @@
 import FormModal from "./FormModal";
 
-export default function AddMemberModal({ onAdd, onClose, projectId }) {
+export default function AddMemberModal({ onAdd, onClose, projectId, saving }) {
   const handleSubmit = (v) => {
     const hours = parseFloat(v.hours);
     if (!v.name.trim()) return "Enter a name.";
     if (!(hours > 0 && hours <= 24)) return "Hours per day must be between 0 and 24.";
 
-    onAdd({ projectId: projectId, name: v.name.trim(), hoursPerDay: hours });
+    // return the promise so the dialog waits for the server and shows its error
+    return onAdd({ projectId: projectId, name: v.name.trim(), hoursPerDay: hours });
   };
 
   return (
@@ -19,6 +20,7 @@ export default function AddMemberModal({ onAdd, onClose, projectId }) {
         { name: "name", label: "Name", type: "text" },
         { name: "hours", label: "Available hours per day", type: "number", defaultValue: 8, min: 1, max: 24, step: 0.5 },
       ]}
+      saving={saving}
     />
   );
 }

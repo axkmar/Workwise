@@ -3,7 +3,7 @@ import { countWorkdays } from "../../utils/calc";
 import { dateKeyFromToday } from "../../utils/calendar";
 
 /** `prefill` can pre-set title/memberId/totalHours/startDate/dueDate (used by the what-if "Assign" button). */
-export default function AddTaskModal({ members, projects, prefill = {}, onAdd, onClose }) {
+export default function AddTaskModal({ members, projects, prefill = {}, onAdd, onClose, saving }) {
   const handleSubmit = (v) => {
     const member = members.find((m) => m._id === v.memberId);
     const hours = parseFloat(v.totalHours);
@@ -44,9 +44,10 @@ export default function AddTaskModal({ members, projects, prefill = {}, onAdd, o
           })),
         },
         { name: "totalHours", label: "Total hours", type: "number", defaultValue: prefill.totalHours, min: 0, step: 0.5 },
-        { name: "startDate", label: "Start date", type: "date", defaultValue: prefill.startDate || dateKeyFromToday(0) },
-        { name: "dueDate", label: "Due date", type: "date", defaultValue: prefill.dueDate || dateKeyFromToday(4) },
+        { name: "startDate", label: "Start date", type: "date", half: true, defaultValue: prefill.startDate || dateKeyFromToday(0) },
+        { name: "dueDate", label: "Due date", type: "date", half: true, defaultValue: prefill.dueDate || dateKeyFromToday(4) },
       ]}
+      saving={saving}
     />
   );
 }

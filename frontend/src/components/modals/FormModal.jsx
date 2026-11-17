@@ -1,13 +1,14 @@
 import { useState } from "react";
+import Button from "../Button";
 import Field from "../Field";
-import "../../styles/Modal.css";
+import Spinner from "../Spinner";
 
 /**
- * Generic form dialog.
- * fields: [{ name, label, type, defaultValue, options, min, max, step }]
+ * Generic form dialog (bottom sheet on phones, centred dialog from sm up).
+ * fields: [{ name, label, type, defaultValue, options, min, max, step, half }]  (half = share a row with the next field)
  * onSubmit(values) -> return an error string to keep the dialog open, or nothing to close it.
  */
-export default function FormModal({ title, fields, submitLabel, onSubmit, onClose }) {
+export default function FormModal({ title, fields, submitLabel, onSubmit, onClose, saving }) {
   const [error, setError] = useState("");
 
   const handleSubmit = async (e) => {
@@ -18,18 +19,39 @@ export default function FormModal({ title, fields, submitLabel, onSubmit, onClos
   };
 
   return (
-    <div className="modal-overlay" onMouseDown={(e) => e.target === e.currentTarget && onClose()}>
-      <form className="modal" noValidate onSubmit={handleSubmit}>
-        <h2 className="modal__title">{title}</h2>
+    <div
+      className="fixed inset-0 z-50 flex items-end justify-center bg-black/60 backdrop-blur-[2px] sm:items-center sm:p-4"
+      onPointerDown={(e) => e.target === e.currentTarget && !saving && onClose()}
+    >
+      <form
+        noValidate
+        onSubmit={handleSubmit}
+        className="flex max-h-[92dvh] w-full animate-pop-in flex-col gap-4 overflow-y-auto overscroll-contain rounded-t-2xl border border-b-0 border-line bg-card
+          p-5 pb-[max(1.25rem,env(safe-area-inset-bottom))] shadow-2xl shadow-black/60 motion-reduce:animate-none
+          sm:max-w-md sm:rounded-2xl sm:border-b sm:pb-5"
+      >
+        <h2 className="text-lg font-semibold">{title}</h2>
 
-        {fields.map(({ name, ...rest }, i) => (
-          <Field key={name} name={name} autoFocus={i === 0} {...rest} />
-        ))}
+        <div className="grid grid-cols-2 gap-x-3 gap-y-4">
+          {fields.map(({ name, half, ...rest }, i) => (
+            <Field key={name} name={name} autoFocus={i === 0} className={half ? "col-span-1" : "col-span-2"} {...rest} />
+          ))}
+        </div>
 
-        <div className="modal__error">{error}</div>
-        <div className="modal__actions">
-          <button type="button" className="btn" onClick={onClose}>Cancel</button>
-          <button className="btn btn--primary">{submitLabel}</button>
+        {error && (
+          <p role="alert" className="rounded-lg border border-over/40 bg-over/10 px-3 py-2 text-sm text-over-ink">
+            {error}
+          </p>
+        )}
+
+        <div className="grid grid-cols-2 gap-2 sm:flex sm:justify-end">
+          <Button onClick={onClose} disabled={saving}>
+            Cancel
+          </Button>
+          <Button type="submit" variant="primary" disabled={saving}>
+            {saving && <Spinner className="size-4 border-current/30 border-t-current" />}
+            {saving ? "Adding…" : submitLabel}
+          </Button>
         </div>
       </form>
     </div>

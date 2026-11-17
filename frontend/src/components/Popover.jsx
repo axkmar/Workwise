@@ -1,7 +1,6 @@
 import { useEffect, useLayoutEffect, useRef, useState } from "react";
 import { hoursPerDay } from "../utils/calc";
 import { formatHours, formatShortDate, parseKey } from "../utils/dates";
-import "../styles/Popover.css";
 
 /** Shows a member's tasks for one day, positioned under (or above) the clicked cell. */
 export default function Popover({ member, dateKey, tasks, projects, anchor, onClose }) {
@@ -19,38 +18,53 @@ export default function Popover({ member, dateKey, tasks, projects, anchor, onCl
     setPos({ left, top });
   }, [anchor]);
 
-  // Close on any mouse press outside. (mousedown, not click, so the click that opened it doesn't close it.)
+  // Close on any press outside (pointerdown also fires for touch, mousedown doesn't on iOS) or on Escape.
+  // The press that opened it has already finished, so it can't close it.
   useEffect(() => {
-    const handle = (e) => {
+    const onPress = (e) => {
       if (!ref.current?.contains(e.target)) onClose();
     };
-    document.addEventListener("mousedown", handle);
-    return () => document.removeEventListener("mousedown", handle);
+    const onKey = (e) => e.key === "Escape" && onClose();
+    document.addEventListener("pointerdown", onPress);
+    document.addEventListener("keydown", onKey);
+    return () => {
+      document.removeEventListener("pointerdown", onPress);
+      document.removeEventListener("keydown", onKey);
+    };
   }, [onClose]);
 
   return (
-    <div className="popover" ref={ref} style={{ left: pos.left, top: pos.top }}>
-      <h4 className="popover__title">
-        {member.name} · {formatShortDate(parseKey(dateKey))}
+    <div
+      ref={ref}
+      role="dialog"
+      aria-label={`${member.name}, tasks`}
+      style={{ left: pos.left, top: pos.top }}
+      className="fixed z-40 max-h-[60dvh] w-64 max-w-[calc(100vw-1rem)] overflow-y-auto rounded-xl border border-line-strong bg-raised p-3 shadow-2xl shadow-black/50"
+    >
+      <h4 className="mb-1 flex flex-wrap items-baseline gap-x-2 text-sm font-semibold">
+        {member.name}
+        <span className="text-xs font-normal text-muted">{formatShortDate(parseKey(dateKey))}</span>
       </h4>
 
       {tasks.length ? (
         tasks.map((t) => {
           const project = projects.find((p) => p._id === t.projectId) || {};
           return (
-            <div className="popover__row" key={t._id}>
-              <i className="popover__dot" style={{ background: project.colour || "#888" }} />
-              <div>
-                {t.title}
-                <br />
-                <small className="popover__muted">{project.name || ""}</small>
+            <div className="flex items-center gap-2.5 border-t border-line py-2 text-sm" key={t._id}>
+              <i
+                className="size-2 shrink-0 rounded-full bg-muted"
+                style={{ background: project.color || project.colour || undefined }}
+              />
+              <div className="min-w-0 flex-1">
+                <div className="truncate">{t.title}</div>
+                <small className="block truncate text-xs text-muted">{project.name || ""}</small>
               </div>
-              <span className="popover__hours">{formatHours(hoursPerDay(t))}h</span>
+              <span className="shrink-0 tabular-nums text-muted">{formatHours(hoursPerDay(t))}h</span>
             </div>
           );
         })
       ) : (
-        <small className="popover__muted">No tasks on this day.</small>
+        <small className="text-xs text-muted">No tasks on this day.</small>
       )}
     </div>
   );

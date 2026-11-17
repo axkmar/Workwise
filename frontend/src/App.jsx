@@ -3,6 +3,8 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import Sidebar from "./components/Sidebar";
 import TopBar from "./components/TopBar";
 import Grid from "./components/Grid";
+import Legend from "./components/Legend";
+import Spinner from "./components/Spinner";
 import Popover from "./components/Popover";
 import WhatIfPanel from "./components/WhatIfPanel";
 import Toast from "./components/Toast";
@@ -14,12 +16,15 @@ import { dateKeyFromToday } from "./utils/calendar";
 import { evaluateWhatIf, tasksOnDay } from "./utils/calc";
 
 const API = `${import.meta.env.VITE_API_URL}/api/v1`;
+const NOUN = { members: "Member", projects: "Project", tasks: "Task" };
 
 export default function App({ token }) {
   // ---- data (always the full set for this user) ----
   const [members, setMembers] = useState([]);
   const [projects, setProjects] = useState([]);
   const [tasks, setTasks] = useState([]);
+  const [loading, setLoading] = useState(true); // first data load
+  const [saving, setSaving] = useState(false); // a create request is in flight
 
   // ---- view state ----
   const [selectedProjectId, setSelectedProjectId] = useState(null); // null = all projects
@@ -84,6 +89,8 @@ export default function App({ token }) {
       } catch (err) {
         console.error(err);
         showToast(err.message);
+      } finally {
+        setLoading(false);
       }
     }
 
@@ -93,6 +100,8 @@ export default function App({ token }) {
   // ---- create ----
   // Returns an error string on failure (FormModal shows it), nothing on success.
   const handleAdd = async (payload, dest) => {
+    if (saving) return; // blocks double-submit
+    setSaving(true);
     try {
       const body =
         dest === "members"
@@ -109,7 +118,6 @@ export default function App({ token }) {
       });
 
       const data = await res.json();
-      console.log(data);
       if (!res.ok) throw new Error(data.message || "Failed to create");
 
       if (dest === "projects") setProjects((list) => [...list, data]);
@@ -117,9 +125,12 @@ export default function App({ token }) {
       else if (dest === "members") setMembers((list) => [...list, data]);
 
       closeModal();
+      showToast(`${NOUN[dest]} added`);
     } catch (error) {
       console.error(error);
       return error.message;
+    } finally {
+      setSaving(false);
     }
   };
 
@@ -159,7 +170,10 @@ export default function App({ token }) {
 
   return (
     <>
-      <div className="app">
+      {/* phones & iPads: sidebar is a strip on top. lg+: sidebar on the left. Safe-area padding keeps clear of notch / home bar. */}
+      <div
+        className="flex h-dvh min-w-0 flex-col overflow-hidden pb-[env(safe-area-inset-bottom)] pl-[env(safe-area-inset-left)] pr-[env(safe-area-inset-right)] pt-[env(safe-area-inset-top)] lg:flex-row"
+      >
         <Sidebar
           projects={projects}
           tasks={tasks}
@@ -168,23 +182,37 @@ export default function App({ token }) {
           onAddProject={() => setModal({ type: "project" })}
         />
 
-        <main className={`main${whatIfOpen ? " main--shifted" : ""}`}>
+        <main
+          className={`flex min-h-0 min-w-0 flex-1 flex-col transition-[padding] duration-200 motion-reduce:transition-none ${
+            whatIfOpen ? "max-sm:pb-[55dvh] xl:pr-[22rem]" : ""
+          }`}
+        >
           <TopBar
             title={selectedProject ? selectedProject.name : "All projects"}
             onAddMember={openMemberModal}
             onAddTask={() => openTaskModal()}
             onToggleWhatIf={() => (whatIfOpen ? closeWhatIf() : setWhatIfOpen(true))}
           />
-          <div className="content">
-            <Grid
-              members={visibleMembers}
-              tasks={tasks}
-              projectId={selectedProjectId}
-              preview={preview}
-              onCellClick={(memberId, dateKey, anchor) =>
-                setPopover({ memberId, dateKey, anchor })
-              }
-            />
+          <div className="min-h-0 flex-1 overflow-auto overscroll-contain px-3 pb-6 sm:px-6">
+            {loading ? (
+              <div role="status" className="flex items-center justify-center gap-3 py-24 text-muted">
+                <Spinner />
+                Loading…
+              </div>
+            ) : (
+              <>
+                <Grid
+                  members={visibleMembers}
+                  tasks={tasks}
+                  projectId={selectedProjectId}
+                  preview={preview}
+                  onCellClick={(memberId, dateKey, anchor) =>
+                    setPopover({ memberId, dateKey, anchor })
+                  }
+                />
+                <Legend className="mt-5 flex flex-wrap gap-x-4 gap-y-1.5 lg:hidden" />
+              </>
+            )}
           </div>
         </main>
       </div>
@@ -222,6 +250,7 @@ export default function App({ token }) {
           onAdd={(m) => handleAdd(m, "members")}
           onClose={closeModal}
           projectId={selectedProjectId}
+          saving={saving}
         />
       )}
       {modal?.type === "project" && (
@@ -229,6 +258,7 @@ export default function App({ token }) {
           projectCount={projects.length}
           onAdd={(p) => handleAdd(p, "projects")}
           onClose={closeModal}
+          saving={saving}
         />
       )}
       {modal?.type === "task" && (
@@ -238,6 +268,7 @@ export default function App({ token }) {
           prefill={modal.prefill}
           onAdd={(t) => handleAdd(t, "tasks")}
           onClose={closeModal}
+          saving={saving}
         />
       )}
 
