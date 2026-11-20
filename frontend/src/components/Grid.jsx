@@ -1,17 +1,15 @@
 import MemberRow from "./MemberRow";
-import { VISIBLE_DAYS } from "../utils/calendar";
 import { DAY_NAMES, isWorkday, toKey } from "../utils/dates";
 
-// name column | 14 day columns | total column
+// name column | one column per visible day | total column (the column template is set inline, see below)
 const GRID =
   "grid w-max min-w-full gap-1 " +
   "[--name-col:7rem] sm:[--name-col:10rem] lg:[--name-col:11rem] " +
-  "[--day-min:3.25rem] [--total-col:3.5rem] " +
-  "grid-cols-[var(--name-col)_repeat(14,minmax(var(--day-min),1fr))_var(--total-col)]";
+  "[--day-min:3.25rem] [--total-col:3.5rem]";
 
 const HEADER = "sticky top-0 z-20 bg-bg pb-2 pt-3 shadow-[0_1px_0_var(--color-line)]";
 
-export default function Grid({ members, tasks, projectId, preview, onCellClick }) {
+export default function Grid({ members, days, tasks, projectId, preview, onCellClick }) {
   if (!members.length) {
     return (
       <div className="grid min-h-[50dvh] place-items-center px-4 text-center">
@@ -33,9 +31,12 @@ export default function Grid({ members, tasks, projectId, preview, onCellClick }
   const todayKey = toKey(new Date());
 
   return (
-    <div className={GRID}>
+    <div
+      className={GRID}
+      style={{ gridTemplateColumns: `var(--name-col) repeat(${days.length}, minmax(var(--day-min), 1fr)) var(--total-col)` }}
+    >
       <div className={`${HEADER} left-0 z-30`} />
-      {VISIBLE_DAYS.map((d) => {
+      {days.map((d) => {
         const work = isWorkday(d);
         const today = toKey(d) === todayKey;
         return (
@@ -60,6 +61,7 @@ export default function Grid({ members, tasks, projectId, preview, onCellClick }
         <MemberRow
           key={m._id}
           member={m}
+          days={days}
           tasks={tasks}
           projectId={projectId}
           preview={preview}

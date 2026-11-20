@@ -1,6 +1,7 @@
 
 import Button from "./Button";
 import Legend from "./Legend";
+import ProfileMenu from "./ProfileMenu";
 
 function ProjectItem({ name, colour, count, active, onClick }) {
   return (
@@ -38,6 +39,7 @@ export default function Sidebar({
   selectedProjectId,
   onSelect,
   onAddProject,
+  onLogout,
 }) {
   return (
     <aside
@@ -46,8 +48,11 @@ export default function Sidebar({
         xl:w-64"
     >
       {/* Brand */}
-      <div className="shrink-0 pr-1 text-[0.9375rem] font-semibold lg:px-3 lg:pb-4 lg:pr-3">
-        ▦ Work<span className="text-accent">Wise</span>
+      <div className="flex shrink-0 items-center gap-2 pr-1 lg:justify-between lg:px-3 lg:pb-4 lg:pr-3">
+        <div className="text-[0.9375rem] font-semibold">
+          ▦ Work<span className="text-accent">Wise</span>
+        </div>
+        <ProfileMenu onLogout={onLogout} />
       </div>
 
       {/* Desktop heading */}

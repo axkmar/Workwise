@@ -1,6 +1,7 @@
-/* Centered card on the dark background */
+/* Centered card on the dark background.
+   Colours come from the theme tokens in index.css (--color-*): the old --card / --border / --text names no longer exist. */
 .auth {
-  min-height: 100%;
+  min-height: 100dvh;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -10,12 +11,13 @@
 .auth__card {
   width: 100%;
   max-width: 380px;
-  background: var(--card);
-  border: 1px solid var(--border);
+  background: var(--color-card);
+  border: 1px solid var(--color-line);
   border-radius: 14px;
   padding: 28px;
   display: grid;
   gap: 14px;
+  box-shadow: 0 20px 50px rgb(0 0 0 / 0.35);
 }
 
 .auth__brand {
@@ -24,12 +26,12 @@
 }
 
 .auth__brand span {
-  color: var(--accent);
+  color: var(--color-accent);
 }
 
 .auth__subtitle {
   margin: -6px 0 0;
-  color: var(--muted);
+  color: var(--color-muted);
   font-size: 13px;
 }
 
@@ -37,8 +39,8 @@
   display: grid;
   grid-template-columns: 1fr 1fr;
   gap: 4px;
-  background: var(--bg);
-  border: 1px solid var(--border);
+  background: var(--color-bg);
+  border: 1px solid var(--color-line);
   border-radius: 10px;
   padding: 4px;
 }
@@ -48,28 +50,31 @@
   border: 0;
   border-radius: 7px;
   padding: 7px 0;
-  color: var(--muted);
+  color: var(--color-muted);
   font: inherit;
   cursor: pointer;
+  transition: background-color 0.15s, color 0.15s;
+}
+
+.auth__tab:hover {
+  color: var(--color-ink);
+}
+
+.auth__tab:focus-visible {
+  outline: 2px solid var(--color-accent);
+  outline-offset: 1px;
 }
 
 .auth__tab.is-active {
-  background: #25272d;
-  color: var(--text);
+  background: var(--color-raised);
+  color: var(--color-ink);
 }
 
 .auth__error {
-  color: #ff8f8f;
+  color: var(--color-over-ink);
+  background: color-mix(in srgb, var(--color-over) 10%, transparent);
+  border: 1px solid color-mix(in srgb, var(--color-over) 40%, transparent);
+  border-radius: 8px;
+  padding: 8px 12px;
   font-size: 13px;
-  min-height: 0;
-}
-
-.auth__submit {
-  width: 100%;
-  padding: 10px 12px;
-}
-
-.auth__submit:disabled {
-  opacity: 0.6;
-  cursor: default;
 }

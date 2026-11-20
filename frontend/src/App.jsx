@@ -10,15 +10,20 @@ import WhatIfPanel from "./components/WhatIfPanel";
 import Toast from "./components/Toast";
 import AddMemberModal from "./components/modals/AddMemberModal";
 import AddProjectModal from "./components/modals/AddProjectModal";
-import AddTaskModal from "./components/modals/AddTaskModal";
+import TaskModal from "./components/modals/TaskModal";
+import CalendarControls from "./components/CalendarControls";
 
-import { dateKeyFromToday } from "./utils/calendar";
+import { dateKeyFromToday, getVisibleDays, shiftAnchor, today } from "./utils/calendar";
+import { parseKey } from "./utils/dates";
 import { evaluateWhatIf, tasksOnDay } from "./utils/calc";
 
 const API = `${import.meta.env.VITE_API_URL}/api/v1`;
 const NOUN = { members: "Member", projects: "Project", tasks: "Task" };
 
-export default function App({ token }) {
+// Selects the date range shown in the grid
+const DEFAULT_VIEW = "twoWeek";
+
+export default function App({ token, onLogout }) {
   // ---- data (always the full set for this user) ----
   const [members, setMembers] = useState([]);
   const [projects, setProjects] = useState([]);
@@ -29,7 +34,9 @@ export default function App({ token }) {
   // ---- view state ----
   const [selectedProjectId, setSelectedProjectId] = useState(null); // null = all projects
   const [popover, setPopover] = useState(null); // { memberId, dateKey, anchor }
-  const [modal, setModal] = useState(null); // { type: "member" | "project" | "task", prefill? }
+  const [modal, setModal] = useState(null); // { type: "member" | "project" | "task", prefill?, task? } (task = editing)
+  const [view, setView] = useState(DEFAULT_VIEW); // "week" | "twoWeek" | "month"
+  const [anchor, setAnchor] = useState(today); // any date inside the period being shown
   const [toast, setToast] = useState(null); // { id, text }
 
   // ---- what-if panel ----
@@ -49,6 +56,8 @@ export default function App({ token }) {
         : members,
     [members, selectedProjectId]
   );
+
+  const days = useMemo(() => getVisibleDays(anchor, view), [anchor, view]);
 
   const whatIfOutcome = useMemo(
     () => evaluateWhatIf(visibleMembers, tasks, whatIfForm),
@@ -97,35 +106,25 @@ export default function App({ token }) {
     load();
   }, [token]);
 
-  // ---- create ----
-  // Returns an error string on failure (FormModal shows it), nothing on success.
-  const handleAdd = async (payload, dest) => {
+  // ---- api ----
+  const request = async (method, path, body) => {
+    const res = await fetch(`${API}/${path}`, {
+      method,
+      headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
+      body: body ? JSON.stringify(body) : undefined,
+    });
+    const data = await res.json().catch(() => ({}));
+    if (!res.ok) throw new Error(data.message || "Request failed");
+    return data;
+  };
+
+  // Runs a save; returns an error string on failure (FormModal shows it), nothing on success.
+  const run = async (fn) => {
     if (saving) return; // blocks double-submit
     setSaving(true);
     try {
-      const body =
-        dest === "members"
-          ? { ...payload, projectId: selectedProjectId }
-          : payload;
-
-      const res = await fetch(`${API}/${dest}/`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
-        },
-        body: JSON.stringify(body),
-      });
-
-      const data = await res.json();
-      if (!res.ok) throw new Error(data.message || "Failed to create");
-
-      if (dest === "projects") setProjects((list) => [...list, data]);
-      else if (dest === "tasks") setTasks((list) => [...list, data]);
-      else if (dest === "members") setMembers((list) => [...list, data]);
-
+      await fn();
       closeModal();
-      showToast(`${NOUN[dest]} added`);
     } catch (error) {
       console.error(error);
       return error.message;
@@ -133,6 +132,34 @@ export default function App({ token }) {
       setSaving(false);
     }
   };
+
+  // ---- create ----
+  const handleAdd = (payload, dest) =>
+    run(async () => {
+      const body = dest === "members" ? { ...payload, projectId: selectedProjectId } : payload;
+      const data = await request("POST", `${dest}/`, body);
+
+      if (dest === "projects") setProjects((list) => [...list, data]);
+      else if (dest === "tasks") setTasks((list) => [...list, data]);
+      else if (dest === "members") setMembers((list) => [...list, data]);
+
+      showToast(`${NOUN[dest]} added`);
+    });
+
+  // ---- edit / delete task ----
+  const handleUpdateTask = (id, payload) =>
+    run(async () => {
+      const data = await request("PUT", `tasks/${id}`, payload);
+      setTasks((list) => list.map((t) => (t._id === id ? data : t))); // grid + popover recompute from this
+      showToast("Task updated");
+    });
+
+  const handleDeleteTask = (id) =>
+    run(async () => {
+      await request("DELETE", `tasks/${id}`);
+      setTasks((list) => list.filter((t) => t._id !== id));
+      showToast("Task deleted");
+    });
 
   // Hovering a candidate previews the extra load on the grid (derived, never stored)
   const preview = useMemo(() => {
@@ -180,6 +207,7 @@ export default function App({ token }) {
           selectedProjectId={selectedProjectId}
           onSelect={setSelectedProjectId}
           onAddProject={() => setModal({ type: "project" })}
+          onLogout={onLogout}
         />
 
         <main
@@ -193,6 +221,16 @@ export default function App({ token }) {
             onAddTask={() => openTaskModal()}
             onToggleWhatIf={() => (whatIfOpen ? closeWhatIf() : setWhatIfOpen(true))}
           />
+          <CalendarControls
+            days={days}
+            anchor={anchor}
+            view={view}
+            onViewChange={setView}
+            onPrev={() => setAnchor((a) => shiftAnchor(a, view, -1))}
+            onNext={() => setAnchor((a) => shiftAnchor(a, view, 1))}
+            onToday={() => setAnchor(today())}
+            onPickDate={(key) => setAnchor(parseKey(key))}
+          />
           <div className="min-h-0 flex-1 overflow-auto overscroll-contain px-3 pb-6 sm:px-6">
             {loading ? (
               <div role="status" className="flex items-center justify-center gap-3 py-24 text-muted">
@@ -203,6 +241,7 @@ export default function App({ token }) {
               <>
                 <Grid
                   members={visibleMembers}
+                  days={days}
                   tasks={tasks}
                   projectId={selectedProjectId}
                   preview={preview}
@@ -242,6 +281,10 @@ export default function App({ token }) {
           projects={projects}
           anchor={popover.anchor}
           onClose={closePopover}
+          onEditTask={(task) => {
+            closePopover();
+            setModal({ type: "task", task });
+          }}
         />
       )}
 
@@ -262,11 +305,19 @@ export default function App({ token }) {
         />
       )}
       {modal?.type === "task" && (
-        <AddTaskModal
-          members={visibleMembers}
+        <TaskModal
+          task={modal.task}
+          members={
+            modal.task
+              ? members.filter((m) => m.projectId === modal.task.projectId) // a task stays in its project
+              : visibleMembers
+          }
           projects={projects}
           prefill={modal.prefill}
-          onAdd={(t) => handleAdd(t, "tasks")}
+          onSubmit={(payload) =>
+            modal.task ? handleUpdateTask(modal.task._id, payload) : handleAdd(payload, "tasks")
+          }
+          onDelete={() => handleDeleteTask(modal.task._id)}
           onClose={closeModal}
           saving={saving}
         />

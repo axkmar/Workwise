@@ -3,12 +3,14 @@ const CONTROL =
   "[&::-webkit-date-and-time-value]:text-left placeholder:text-muted/60 " +
   "focus:border-accent focus:outline-none focus:ring-2 focus:ring-accent/30";
 
-/** Labelled input or select. Pass `type="select"` with `options=[{value,label}]` for a dropdown. */
+/** Labelled input, textarea or select. Pass `type="select"` with `options=[{value,label}]` for a dropdown. */
 export default function Field({ label, type = "text", options, className = "", ...inputProps }) {
   return (
     <label className={`flex min-w-0 flex-col gap-1.5 text-xs font-medium text-muted ${className}`}>
       {label}
-      {type === "select" ? (
+      {type === "textarea" ? (
+        <textarea rows={3} className={`${CONTROL} resize-none px-3 py-2`} {...inputProps} />
+      ) : type === "select" ? (
         <select className={`${CONTROL} px-3 py-2`} {...inputProps}>
           {options.map((o) => (
             <option key={o.value} value={o.value}>

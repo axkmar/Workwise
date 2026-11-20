@@ -1,5 +1,6 @@
 // Workload maths. All functions are pure: pass in the tasks/members you want to use.
 import { addDays, isWorkday, parseKey, toKey } from "./dates";
+import { isCompleted } from "./task";
 
 /** All Mon-Fri date keys between start and due, inclusive. [] for empty/invalid/reversed ranges. */
 export function getWorkdays(startKey, endKey) {
@@ -27,7 +28,8 @@ export function hoursPerDay(task) {
   return days ? task.estTime / days : 0;
 }
 
-/** Tasks of a member covering a date (ISO strings compare correctly), optionally for one project. */
+/** Tasks of a member covering a date (ISO strings compare correctly), optionally for one project.
+ *  Includes completed tasks, because the popover still shows them. */
 export function tasksOnDay(tasks, memberId, dateKey, projectId) {
   return tasks.filter(
     (t) =>
@@ -38,10 +40,13 @@ export function tasksOnDay(tasks, memberId, dateKey, projectId) {
   );
 }
 
-/** A member's load on a day = sum of each covering task's daily share. Weekends are always 0. */
+/** A member's load on a day = sum of each covering task's daily share. Weekends are always 0.
+ *  Completed tasks are done work, so they don't count as planned load (this also feeds the what-if check). */
 export function loadOnDay(tasks, memberId, dateKey, projectId) {
   if (!isWorkday(parseKey(dateKey))) return 0;
-  return tasksOnDay(tasks, memberId, dateKey, projectId).reduce((sum, t) => sum + hoursPerDay(t), 0);
+  return tasksOnDay(tasks, memberId, dateKey, projectId)
+    .filter((t) => !isCompleted(t))
+    .reduce((sum, t) => sum + hoursPerDay(t), 0);
 }
 
 /** "empty" | "ok" (<=70%) | "warn" (<=100%) | "over" (>100%). Epsilon avoids float edge errors. */

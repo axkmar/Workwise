@@ -1,5 +1,4 @@
 import Avatar from "./Avatar";
-import { VISIBLE_DAYS } from "../utils/calendar";
 import { loadOnDay, loadStatus } from "../utils/calc";
 import { formatHours, isWorkday, toKey } from "../utils/dates";
 
@@ -24,15 +23,15 @@ const CELL =
 
 const PREVIEW = "outline-2 -outline-offset-2 outline-dashed outline-accent";
 
-/** One grid row: member name, 14 day cells, weekly total. Rendered as a fragment so it sits in the parent grid. */
-export default function MemberRow({ member, tasks, projectId, preview, onCellClick }) {
+/** One grid row: member name, one cell per visible day, total for the visible range. Rendered as a fragment so it sits in the parent grid. */
+export default function MemberRow({ member, days, tasks, projectId, preview, onCellClick }) {
   const available = member.hoursPerDay;
   const activePreview = preview && preview.memberId === member._id ? preview : null;
 
   let totalLoad = 0;
   let totalAvailable = 0;
 
-  const cells = VISIBLE_DAYS.map((day) => {
+  const cells = days.map((day) => {
     const dateKey = toKey(day);
     if (!isWorkday(day)) {
       return <div key={dateKey} className="min-h-12 rounded-lg border border-dashed border-line/60 opacity-50" />;

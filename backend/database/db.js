@@ -49,6 +49,9 @@ const memberSchema = new mongoose.Schema({
   },
 })
 
+const PRIORITIES = ["low", "medium", "high", "critical"];
+const STATUSES = ["todo", "in_progress", "in_review", "completed"];
+
 const taskSchema = new mongoose.Schema({
   projectId:{
     type:mongoose.Schema.Types.ObjectId,
@@ -57,16 +60,36 @@ const taskSchema = new mongoose.Schema({
   },
   memberId:{
     type:mongoose.Schema.Types.ObjectId,
-    ref:"User",
+    ref:"Member",
     required:false
   },
   title:{
     type:String,
     required:true
   },
-  estTime:{
+  description:{
+    type:String,
+    default:"",
+    maxLength:500
+  },
+  priority:{
+    type:String,
+    enum:PRIORITIES,
+    default:"medium"
+  },
+  status:{
+    type:String,
+    enum:STATUSES,
+    default:"todo"
+  },
+  estTime:{            // estimated hours (drives planned workload)
     type:Number,
     required:true
+  },
+  actualTime:{         // actual hours logged (display only, never used in capacity maths)
+    type:Number,
+    default:0,
+    min:0
   },
   startDate:{ 
     type: String, 
@@ -84,5 +107,5 @@ const Project = mongoose.model("Project",projectSchema);
 const Task = mongoose.model("Task", taskSchema);
 
 module.exports = {
-  User,Member,Project,Task
+  User,Member,Project,Task,PRIORITIES,STATUSES
 }

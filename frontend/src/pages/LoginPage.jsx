@@ -1,6 +1,9 @@
 import { useState } from "react";
+import Button from "../components/Button";
 import Field from "../components/Field";
 import "./LoginPage.css";
+
+const API = import.meta.env.VITE_API_URL;
 
 /** Login + signup in one card. Calls onLogin(token, user) when the server accepts it. */
 export default function LoginPage({ onLogin }) {
@@ -8,8 +11,6 @@ export default function LoginPage({ onLogin }) {
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
   const isSignup = mode === "signup";
-
-const API = import.meta.env.VITE_API_URL;
 
   const switchMode = (next) => {
     setMode(next);
@@ -22,19 +23,21 @@ const API = import.meta.env.VITE_API_URL;
 
     if (isSignup && !values.name.trim()) return setError("Enter your name.");
     if (!values.email.trim()) return setError("Enter your email.");
-    if (values.password.length < 6) return setError("Password must be at least 6 characters.");
+    if (!values.password) return setError("Enter your password.");
+    // the backend schema requires 10-30 characters when creating an account
+    if (isSignup && (values.password.length < 10 || values.password.length > 30))
+      return setError("Password must be 10 to 30 characters.");
 
     setError("");
     setLoading(true);
     try {
-      const res = await fetch(`${API}/api/v1/users/signup`, {
+      const res = await fetch(`${API}/api/v1/users/${isSignup ? "signup" : "signin"}`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(values),
       });
-      const data = await res.json();
-      console.log(data.token);
-      if (!res.ok) throw new Error(data.error || "Something went wrong.");
+      const data = await res.json().catch(() => ({})); // a server crash can return HTML, not JSON
+      if (!res.ok || !data.token) throw new Error(data.message || "Something went wrong.");
       onLogin(data.token);
     } catch (err) {
       setError(err.message);
@@ -71,11 +74,15 @@ const API = import.meta.env.VITE_API_URL;
           autoComplete={isSignup ? "new-password" : "current-password"}
         />
 
-        <div className="auth__error">{error}</div>
+        {error && (
+          <div role="alert" className="auth__error">
+            {error}
+          </div>
+        )}
 
-        <button className="btn btn--primary auth__submit" disabled={loading}>
+        <Button type="submit" variant="primary" className="w-full" disabled={loading}>
           {loading ? "Please wait..." : isSignup ? "Create account" : "Log in"}
-        </button>
+        </Button>
       </form>
     </div>
   );

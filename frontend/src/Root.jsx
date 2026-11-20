@@ -10,11 +10,11 @@ export default function Root() {
     setToken(newToken);
   };
 
-  // const handleLogout = () => {
-  //   localStorage.removeItem("token");
-  //   setToken(null);
-  // };
+  const handleLogout = () => {
+    localStorage.removeItem("token");
+    setToken(null); // no token -> the login page shows again
+  };
 
   if (!token) return <LoginPage onLogin={handleLogin} />;
-  return <App token={token} />;
+  return <App token={token} onLogout={handleLogout} />;
 }
